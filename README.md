@@ -1,6 +1,7 @@
 # QO-100-Controller
 QO-100 Controller for FT817/818 Transceiver
 
+V1.0 
 
 This Python program does some usefull control functions for working the QO_100 transponder using a Yaesu FT-817 or 
 lookalike transceiver. The program assumes you are using an LNB for 10 GHz reception with downconverts to 70cm and is 
@@ -17,13 +18,14 @@ The program has variables to set the different frequencies.
 The FT-818 must run in split mode so bot VFO A and B are used.
 
 The main functions are:
-1. read receive frequency and calculate the QO-100 transponder frequency
-2. ability to calibrate the calculation against the middle (PSK) Beacon using USB/LSB adjustment
-3. ability to calibrate against a known signal
-4. set the TX frequency based on the calculated QO-100 frequency
-5. change mode of operation either USB or CW
-6. store and recall memory frequency
-7. quick access to home frequency
+1. read receive frequency and calculate the QO-100 transponder frequency.
+2. ability to calibrate the calculation against the middle (PSK) Beacon using USB/LSB adjustment.
+3. ability to calibrate against a known signal.
+4. set the TX frequency based on the calculated QO-100 frequency.
+5. change mode of operation either USB or CW.
+6. store and recall memory frequency.
+7. quick access to home frequency.
+8. tune function. Puts FT818 in PSK tx mode with constant carrier.
 
 By nature of Python, the program can run on any platform, but the GUI geometry has been adjusted for using the 
 program on a RPi with 7" screen.
