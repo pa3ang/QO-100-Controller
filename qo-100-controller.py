@@ -1,21 +1,32 @@
 # PA3ANG, February - 2020
-# version 1.0
+# version 1.2
 #
+# version 1.0
 # This program connects to a FT817/818 transceiver and reads the RX frequency and calculate the TX frequency for
 # the working on the QO-100 transponder. The TX frequency is calculated based on the LNB TCXO offset, the
 # uplink transvertor IF frequency. Both have + or - delta figures. The Frequency is in 10Hz size.
 #
-
+# version 1.1
+# added time delay on TX detect back to RX
+# added dynamic TX Update after 4 seconds no adjust of RX frequency
+# added split button to prevent above
+# changed BCN fucntion will return back to tuned RX frequency in stead of new calculated QO_frequency
+#
+# version 1.2
+# changed split to button autoTX. Same function but now explicit to tell program to auto update TX frequency
+# added button to jump direct to CW band frequency 
+#
 import serial
 import time
 from tkinter import *
 
 # Constants  (choose based on platform)
-SERIAL_PORT = "/dev/ttyUSB0"
-#SERIAL_PORT = "COM8"
+#SERIAL_PORT = "/dev/ttyUSB0"
+SERIAL_PORT = "COM8"
 
 # User presets  (Frequency *10Hz)
 Home_frequency = 1048968000
+Cw_band_frequency = 1048952500
 Beacon_frequency = 1048975000
 
 # Up and Down link offsets (Frequency *10Hz)
@@ -46,8 +57,12 @@ TX_frequency = 0
 M1_frequency = 0
 M2_frequency = 0
 M3_frequency = 0
-Return_frequency=0
+RX_return_frequency = 0
+Return_frequency = 0
 mode = "01"
+updateTX_time = time.time()
+RX_frequency_before = 0
+TXstable_time = 0
 
 # boolean for program flow
 updatetx = False
@@ -56,6 +71,9 @@ setfreq = False
 setmode = False
 setcal = False
 tune_status = 0
+updateTX = False
+updateTX_timer =0
+auto_updateTX = False
 
 # make a TkInter Window
 window = Tk()
@@ -81,10 +99,16 @@ def set_home ():
     updatetx = True
     New_frequency = Home_frequency
 
+def set_cw_band ():
+    global setfreq, updatetx, Cw_band_frequency, New_frequency
+    setfreq = True
+    updatetx = True
+    New_frequency = Cw_band_frequency
+
 def set_bcn ():
-    global setfreq, setcal,  Beacon_frequency, New_frequency, QO_freqency, Return_frequency
+    global setfreq, setcal,  Beacon_frequency, New_frequency, QO_freqency, RX_return_frequency, RX_frequency
     setcal = True
-    Return_frequency = QO_frequency
+    RX_return_frequency = RX_frequency
     setfreq = True
     New_frequency = Beacon_frequency
     button_bcn.configure(text="SET", command= calibrate, bg="red")
@@ -101,11 +125,22 @@ def toggle_mode ():
     setmode = True
     esc_function()
 
+def toggle_auto_updateTX ():
+    global auto_updateTX
+    if auto_updateTX == False:
+       auto_updateTX = True
+       button_auto_update.configure(bg="green")
+    else:
+       auto_updateTX = False
+       button_auto_update.configure(bg=window["bg"])
+
 def calibrate ():
-    global mode, QO_frequency, LNB_CALIBRATE, Beacon_frequency
+    global mode, QO_frequency, LNB_CALIBRATE, Beacon_frequency, RX_return_frequency, Return_frequency
     LNB_CALIBRATE = LNB_CALIBRATE - (QO_frequency -Beacon_frequency)
     button_bcn.configure(text="BCN", command= set_bcn, bg=window["bg"])
     # mode back in USB for safety and return to old frequency via esc_function sub
+    RX_frequency = (QO_frequency - LNB_OFFSET - LNB_CALIBRATE)/100000
+    Return_frequency= (RX_return_frequency*100000) + LNB_OFFSET + LNB_CALIBRATE
     mode = "02"
     toggle_mode()
 
@@ -193,6 +228,7 @@ def esc_function ():
     normal_function()
 
 def read_ptt ():
+    global TXstable_time
     # open serial port
     ser = serial.Serial(port=SERIAL_PORT, baudrate=SERIAL_SPEED, stopbits=SERIAL_STOPBITS, timeout=SERIAL_TIMEOUT)
     cmd = CMD_READ_PTT
@@ -202,14 +238,19 @@ def read_ptt ():
     #check if bit 7 is 0
     if ord(resp)&128 == False:
        # transmitting
-       label_9.config(text="")
-       label_10.config(text=">")
+       label_2.config(fg="black")
+       label_3.config(fg="red")
+       TXstable_time = time.time()
        return True
     else:
        # receiving
-       label_9.config(text=">")
-       label_10.config(text="")
-       return False
+       label_2.config(fg="green")
+       label_3.config(fg="black")
+       if time.time() - TXstable_time > 2:
+          return False
+       else:
+          return True
+
 
 def tune ():
     global tune_status
@@ -254,8 +295,8 @@ def toggle_tune():
 
 def read_frequency ():
     # this is the mainloop and controls the serial port
-    global ser, updatetx, pulse, setfreq, setmode, setcal, mode, tune_status
-    global QO_frequency, New_frequency
+    global ser, updatetx, pulse, setfreq, setmode, setcal, mode, tune_status, updateTX, updateTX_time, auto_updateTX
+    global QO_frequency, New_frequency, RX_frequency, RX_frequency_before
     if tune_status is 1:
        tx_tune()
 
@@ -284,6 +325,10 @@ def read_frequency ():
        QO_frequency = RX_frequency + LNB_OFFSET + LNB_CALIBRATE
        RX_frequency = (QO_frequency - LNB_OFFSET - LNB_CALIBRATE)/100000
 
+       if RX_frequency != RX_frequency_before:
+          updateTX_time = time.time()
+       RX_frequency_before = RX_frequency
+
        # check if user wants to update TX frequency 
        # this routine is embedded in this 'open serial port' routine
        if updatetx == True:
@@ -299,8 +344,18 @@ def read_frequency ():
        label_4.config(text=QOF)
        RXF = ('{0:.5f}'.format(RX_frequency))
        label_5.config(text=RXF)
-       if (QO_frequency - 808950000 - UPLINK_LO_FREQUENCY) != TX_frequency:
+       if (QO_frequency - 808950000 - UPLINK_LO_FREQUENCY) != TX_frequency and updateTX == False:
           label_6.config(foreground="red")
+          updateTX_time = time.time()
+          updateTX = True
+
+       if updateTX == True and auto_updateTX == True:
+          label_8.config(foreground="red")
+          if time.time() - updateTX_time > 4:
+             label_8.config(foreground="red")
+             updatetx = True
+             updateTX = False
+
 
     # display pulse
     pulse = not pulse
@@ -387,25 +442,27 @@ def update_tx_frequency ():
     label_6.config(foreground="black")
 
 # write information in Tkinter Window
-label_1 = Label(window, text="QO-100", font=('Arial', 16, 'bold'), width=8).grid(column=1, row=1)
-label_2 = Label(window, text="Rx", font=('Arial', 16, 'bold')).grid(column=1, row=2)
-label_3 = Label(window, text="Tx", font=('Arial', 16, 'bold')).grid(column=1, row=3)
-label_4 = Label(window, font=('Arial', 16, 'bold'), width=14)
+label_1 = Label(window, text="QO-100", font=('Arial', 14, 'bold'), width=8).grid(column=1, row=1)
+label_2 = Label(window, text="Rx", font=('Arial', 14, 'bold'))
+label_2.grid(column=1, row=2)
+label_3 = Label(window, text="Tx", font=('Arial', 14, 'bold'))
+label_3.grid(column=1, row=3)
+label_4 = Label(window, font=('Arial', 16, 'bold'), width=14, fg='blue')
 label_4.grid(column=2, row=1)
-label_5 = Label(window, font=('Arial', 16, 'bold'))
+label_5 = Label(window, font=('Arial', 14, 'normal'))
 label_5.grid(column=2, row=2)
-label_6 = Label(window, text="------", font=('Arial', 16, 'bold'))
+label_6 = Label(window, text="------", font=('Arial', 14, 'normal'))
 label_6.grid(column=2, row=3)
-label_7 = Label(window, font=('Arial', 14, 'bold'))
+label_7 = Label(window, font=('Arial', 14, 'normal'))
 label_7.grid(column=3, row=1)
 label_8 = Label(window, font=('Arial', 14, 'bold'))
 label_8.place(x=100, y=6)
-label_9 = Label(window, text=">", font=('Arial', 14, 'bold'))
-label_9.place(x=14, y= 34)
-label_10 = Label(window, text="", font=('Arial', 14, 'bold'))
-label_10.place(x=14, y= 65)
 
-Button(window, text = "Update TX", command = update_tx, width=14).grid(column=3, row=3)
+
+Button(window, text = "  ", command = update_tx, width=14).grid(column=3, row=3)
+Button(window, text = "UpdTX", command = update_tx, width=5).grid(column=3, row=3, sticky="W")
+button_auto_update = Button(window, text = "AutoTX", command = toggle_auto_updateTX, width=5)
+button_auto_update.grid(column=3, row=3, sticky="E")
 button_tune = Button(window, text = "Tune", command = tune, width=5)
 button_tune.grid(column=3, row=2, sticky="E")
 button_bcn = Button(window, text = "BCN", command = set_bcn, width=5)
@@ -413,7 +470,8 @@ button_bcn.grid(column=3, row=2, sticky="W")
 Button(window, text = "<", command = calibrate_down).grid(column=3, row=1, sticky="W")
 Button(window, text = ">", command = calibrate_up).grid(column=3, row=1, sticky="E")
 
-Button(window, text = "HOME", command = set_home, width=8).grid(column=1, row=4)
+Button(window, text = ".680", command = set_home, width=8).grid(column=1, row=4)
+Button(window, text = ".525", command = set_cw_band, width=3).grid(column=2, row=4, sticky="W")
 button_mode = Button(window, text = "CW", command = toggle_mode, width=3)
 button_mode.grid(column=2, row=4)
 button_funct = Button(window, text = "F", command = up_function, width=3)
