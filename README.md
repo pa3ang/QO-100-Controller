@@ -1,8 +1,17 @@
 # QO-100-Controller
 QO-100 Controller for FT817/818 Transceiver
 
-V1.0 
+V1.2
+changed split to button autoTX. Same function but now explicit to tell program to auto update TX frequency
+added button to jump direct to CW band frequency 
 
+V1.1
+added time delay on TX detect back to RX
+added dynamic TX Update after 4 seconds no adjust of RX frequency
+added split button to prevent above
+changed BCN fucntion will return back to tuned RX frequency in stead of new calculated QO_frequency
+
+V1.0 
 This Python program does some usefull control functions for working the QO_100 transponder using a Yaesu FT-817 or 
 lookalike transceiver. The program assumes you are using an LNB for 10 GHz reception with downconverts to 70cm and is 
 TCXO stabilized. The uplink is generated from either 144 MHz or 432 MHz. 
