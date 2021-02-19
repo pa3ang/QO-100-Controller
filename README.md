@@ -1,6 +1,12 @@
 # QO-100-Controller
 QO-100 Controller for FT817/818 Transceiver
 
+V2.1
+Reworked version with new geometric of the presentation window.
+Auto update cancelled, now only manuap update by clicking the button on the window Up.TX
+Added possibility to use 2 meter as downlink (removed some validation)
+Changed the name of the file
+
 V1.2
 changed split to button autoTX. Same function but now explicit to tell program to auto update TX frequency
 added button to jump direct to CW band frequency 
