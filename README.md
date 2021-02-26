@@ -1,6 +1,12 @@
 # QO-100-Controller
 QO-100 Controller for FT817/818 Transceiver
 
+V2.2
+Added pre-set knobs to select frequency and mode. (will change both VFO A an B settings.
+Added LNB_OFFSET value for LNB downconversion to 144.500 MHz  (line 23).
+Note 1: some FT-817 need to increase the SETTLE_TIME to .3  (line 33).
+Note 2: LNB_CALIBRATE is my value with a TXCO controlled LNB but with 30kHz off frequency. Could be set to 0 if your system is GPS disiplined. (line 27)
+
 V2.1
 Reworked version with new geometric of the presentation window.
 Auto update cancelled, now only manuap update by clicking the button on the window Up.TX
