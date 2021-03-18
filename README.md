@@ -1,6 +1,9 @@
 # QO-100-Controller
 QO-100 Controller for FT817/818 Transceiver
 
+V2.4 
+Changed Tinker window to fit on 3,5" screen. Full functions as within V2.2
+
 V2.2
 Added pre-set knobs to select frequency and mode. (will change both VFO A an B settings.
 Added LNB_OFFSET value for LNB downconversion to 144.500 MHz  (line 23).
