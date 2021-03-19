@@ -31,7 +31,7 @@ LNB_CALIBRATE       = -3140
 UPLINK_LO_FREQUENCY = 196800000 - 50
 
 # this can vary per transceiver must be between 200mS or 300ms
-SETTLE_TIME         = .2
+SETTLE_TIME         = .3
 
 # Serial port settings
 SERIAL_SPEED        = 38400
@@ -283,7 +283,7 @@ label_frequency.grid(row=1, columnspan=4, padx=(16,6))
 
 button_calibrate = Button(window, command = set_bcn, width=6, highlightthickness=2)
 button_calibrate.grid(column=0, row=2, ipady=10, pady=(4, 4), padx=(16, 6))
-button_spare     = Button(window, text = "--", command = start_tune, width=6, highlightthickness=2)
+button_spare     = Button(window, text = "--", width=6, highlightthickness=2)
 button_spare.grid(column=1, row=2, ipady=10, pady=(4, 4), padx=(6, 6))
 button_tune      = Button(window, text = "Tune", command = start_tune, width=6, highlightthickness=2)
 button_tune.grid(column=2, row=2, ipady=10, pady=(4, 4), padx=(6, 6))
