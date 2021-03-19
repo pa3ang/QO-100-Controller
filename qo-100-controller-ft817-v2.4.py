@@ -1,11 +1,12 @@
 # PA3ANG, March - 2020
-# version 2.3 
+# version 2.4 
 # 
 # no auto update but manual
 # the program assumes your FT-817 is in SPLIT mode with VFO A / B
 # please change the lines with the IF offset frequencies LNB_OFFSET and UPLINK_LO_FREQUENCY
 # there is a calibration function if needed (so when you do not have GPS locked system)
 # the LNB need to be TCXO controlled at least!
+# geometrics fit 3,5" display
 
 
 # Libraries
@@ -62,7 +63,7 @@ setcal              = False
 
 # make a TkInter Window
 window = Tk()
-window.geometry("250x170")
+window.geometry("380x260")
 # sloppy way to add conversion info to the title bar
 if LNB_OFFSET > 1005900000 :
     satmode = 'S/X<=>V/U'
@@ -71,7 +72,7 @@ else :
 if UPLINK_LO_FREQUENCY > 197000000 :
     satmode = satmode[0:9] +"V"
 # title bar
-window.wm_title("FT-817")
+window.wm_title("FT-817 / QO-100")
 
 # functions
 def set_525 ():
@@ -276,30 +277,30 @@ def update_tx_frequency ():
 # write information in Tkinter Window
 # frequency label
 label_frequency = Label(window, font=('Arial', 30, 'bold'), fg='blue')
-label_frequency.grid(row=1, columnspan=5)
+label_frequency.grid(row=1, columnspan=4, padx=(16,6))
 
 # function keys
-button_update = Button(window, text = "Up.TX", command = update_tx_frequency, width=4, highlightthickness=2, highlightbackground="red")
-button_update.grid(column=4, row=2)
-button_calibrate = Button(window, command = set_bcn, width=4, highlightthickness=2)
-button_calibrate.grid(column=1, row=2)
-button_tune = Button(window, text = "Tune", command = start_tune, width=4, highlightthickness=2)
-button_tune.grid(column=3, row=2)
-button_spare = Button(window, text = "--", command = start_tune, width=4, highlightthickness=2)
-button_spare.grid(column=2, row=2)
 
-Button(window, text = "525/CW",command  = set_525,   width=4).grid(column=1, row=3)
-Button(window, text = "540/DIG",command = set_540,   width=4).grid(column=2, row=3)
-Button(window, text = "680/USB",command = set_680,   width=4).grid(column=3, row=3)
-Button(window, text = "950/USB",command = set_950,   width=4).grid(column=4, row=3)
+button_calibrate = Button(window, command = set_bcn, width=6, highlightthickness=2)
+button_calibrate.grid(column=0, row=2, ipady=10, pady=(4, 4), padx=(16, 6))
+button_spare     = Button(window, text = "--", command = start_tune, width=6, highlightthickness=2)
+button_spare.grid(column=1, row=2, ipady=10, pady=(4, 4), padx=(6, 6))
+button_tune      = Button(window, text = "Tune", command = start_tune, width=6, highlightthickness=2)
+button_tune.grid(column=2, row=2, ipady=10, pady=(4, 4), padx=(6, 6))
+button_update    = Button(window, text = "Up.TX", command = update_tx_frequency, width=6, highlightthickness=2, highlightbackground="red")
+button_update.grid(column=3, row=2, ipady=10, pady=(4, 4), padx=(6, 6))
 
-Button(window, text = "< 50", command = set_down_50, width=4).grid(column=1, row=4)
-Button(window, text = "50 >", command = set_up_50,   width=4).grid(column=4, row=4)
-Button(window, text = "< 10", command = set_down_10, width=4).grid(column=2, row=4)
-Button(window, text = "10 >", command = set_up_10,   width=4).grid(column=3, row=4)
+Button(window, text = "525/CW" , command  = set_525,    width=6).grid(column=0, row=3, ipady=10, pady=(4, 4), padx=(16, 6))
+Button(window, text = "540/DIG", command = set_540,     width=6).grid(column=1, row=3, ipady=10, pady=(4, 4), padx=(6, 6))
+Button(window, text = "680/USB", command = set_680,     width=6).grid(column=2, row=3, ipady=10, pady=(4, 4), padx=(6, 6))
+Button(window, text = "950/USB", command = set_950,     width=6).grid(column=3, row=3, ipady=10, pady=(4, 4), padx=(6, 6))
 
-label_footer = Label(window, font=('Arial', 9, 'normal'), text=" "+SERIAL_PORT+" @"+str(SERIAL_SPEED)+" Bd. Mode: "+satmode)
-label_footer.grid(row=5, columnspan=5)
+Button(window, text = "< 50"   , command = set_down_50, width=6).grid(column=0, row=4, ipady=10, pady=(4, 4), padx=(16, 6))
+Button(window, text = "< 10"   , command = set_down_10, width=6).grid(column=1, row=4, ipady=10, pady=(4, 4), padx=(6, 6))
+Button(window, text = "10 >"   , command = set_up_10,   width=6).grid(column=2, row=4, ipady=10, pady=(4, 4), padx=(6, 6))
+Button(window, text = "50 >"   , command = set_up_50,   width=6).grid(column=3, row=4, ipady=10, pady=(4, 4), padx=(6, 6))
 
+label_footer = Label(window, font=('Arial', 11, 'normal'), text=SERIAL_PORT+" @"+str(SERIAL_SPEED)+" Bd. Mode: "+satmode)
+label_footer.grid(row=5, columnspan=4, padx=(16,6))
 read_frequency()
 window.mainloop()
